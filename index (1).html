@@ -1,0 +1,377 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gaming Hub - Play exciting games including chess with AI bots!">
+    <meta name="keywords" content="gaming, chess, video games, online games, gaming hub">
+    <meta name="author" content="Gaming Hub Team">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <title>Gaming Hub</title>
+    <style>
+        body {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            font-family: 'Arial', sans-serif;
+        }
+        .game-card, .chess-container {
+            transition: transform 0.3s ease-in-out;
+        }
+        .game-card:hover, .chess-container:hover {
+            transform: scale(1.05);
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-900 p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-indigo-400">Gaming Hub</h1>
+            <ul class="flex space-x-6">
+                <li><a href="#" class="hover:text-indigo-400 transition" aria-label="Go to Home page">Home</a></li>
+                <li><a href="#games" class="hover:text-indigo-400 transition" aria-label="Go to Games section">Games</a></li>
+                <li><a href="#chess" class="hover:text-indigo-400 transition" aria-label="Go to Chess section">Chess</a></li>
+                <li><a href="#" class="hover:text-indigo-400 transition" aria-label="Go to About page">About</a></li>
+                <li><a href="#" class="hover:text-indigo-400 transition" aria-label="Go to Contact page">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-indigo-600 to-purple-600 py-20 text-center">
+        <div class="container mx-auto">
+            <h2 class="text-4xl font-extrabold mb-4">Welcome to Gaming Hub</h2>
+            <p class="text-lg mb-6">Discover the best games and dive into endless fun!</p>
+            <a href="#games" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded transition" role="button">Explore Games</a>
+        </div>
+    </section>
+
+    <!-- Games Section -->
+    <section id="games" class="py-16">
+        <div class="container mx-auto">
+            <h3 class="text-3xl font-bold text-center mb-10">Featured Games</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Game Card 1 -->
+                <div class="game-card bg-gray-800 rounded-lg overflow-hidden shadow-lg animate-fade-in">
+                    <img src="https://via.placeholder.com/300x200" alt="Space Adventure Game" class="w-full h-48 object-cover" loading="lazy">
+                    <div class="p-6">
+                        <h4 class="text-xl font-semibold mb-2">Space Adventure</h4>
+                        <p class="text-gray-400 mb-4">Embark on an epic journey through the stars!</p>
+                        <a href="#" class="bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded" role="button">Play Now</a>
+                    </div>
+                </div>
+                <!-- Game Card 2 -->
+                <div class="game-card bg-gray-800 rounded-lg overflow-hidden shadow-lg animate-fade-in">
+                    <img src="https://via.placeholder.com/300x200" alt="Racing Rush Game" class="w-full h-48 object-cover" loading="lazy">
+                    <div class="p-6">
+                        <h4 class="text-xl font-semibold mb-2">Racing Rush</h4>
+                        <p class="text-gray-400 mb-4">Speed through thrilling tracks and win!</p>
+                        <a href="#" class="bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded" role="button">Play Now</a>
+                    </div>
+                </div>
+                <!-- Game Card 3 -->
+                <div class="game-card bg-gray-800 rounded-lg overflow-hidden shadow-lg animate-fade-in">
+                    <img src="https://via.placeholder.com/300x200" alt="Puzzle Quest Game" class="w-full h-48 object-cover" loading="lazy">
+                    <div class="p-6">
+                        <h4 class="text-xl font-semibold mb-2">Puzzle Quest</h4>
+                        <p class="text-gray-400 mb-4">Challenge your mind with exciting puzzles!</p>
+                        <a href="#" class="bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded" role="button">Play Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chess Section -->
+    <section id="chess" class="py-16">
+        <div class="container mx-auto">
+            <h3 class="text-3xl font-bold text-center mb-10">Play Chess</h3>
+            <div class="chess-container bg-gray-800 rounded-lg shadow-lg p-6 mx-auto max-w-2xl animate-fade-in">
+                <div id="chessboard" class="mx-auto" style="width: 400px;"></div>
+                <div class="mt-6 text-center">
+                    <p id="game-status" class="text-lg mb-4">Select a bot to start playing!</p>
+                    <select id="bot-level" class="bg-gray-700 text-white p-2 rounded mb-4">
+                        <option value="easy">Easy Bot (Random Moves)</option>
+                        <option value="medium">Medium Bot (Basic Strategy)</option>
+                        <option value="hard">Hard Bot (Minimax)</option>
+                    </select>
+                    <button id="start-game" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded" role="button">Start Game</button>
+                    <button id="reset-game" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded ml-2" role="button">Reset Game</button>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <h4 class="text-2xl font-semibold mb-4">Guide to Host Your Gaming Hub Online for Free</h4>
+                <p class="text-gray-400 max-w-2xl mx-auto">Follow these steps to host your Gaming Hub, including the chess game, on GitHub Pages for free:</p>
+                <ol class="text-left text-gray-400 max-w-2xl mx-auto mt-4 list-decimal pl-6">
+                    <li>Create a GitHub account at <a href="https://github.com" class="text-indigo-400 hover:text-indigo-600">github.com</a>.</li>
+                    <li>Create a new repository named `<your-username>.github.io` (replace `<your-username>` with your GitHub username).</li>
+                    <li>Upload your `index.html`, `styles.css`, and any assets (e.g., images, favicon.ico) to the repository.</li>
+                    <li>Go to the repository settings, scroll to the "Pages" section, and enable GitHub Pages by selecting the main branch and the `/ (root)` folder.</li>
+                    <li>Wait a few minutes, then visit `https://<your-username>.github.io` to see your live site.</li>
+                    <li>Ensure external resources (e.g., chess.js, chessboard.js) use CDN links, as in this code, to avoid local file dependencies.</li>
+                    <li>Update your repository with new changes to keep the site updated.</li>
+                </ol>
+                <p class="text-gray-400 max-w-2xl mx-auto mt-4">Note: GitHub Pages is ideal for static sites like this one. For dynamic features (e.g., saving game history), consider adding a backend later.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-6">
+        <div class="container mx-auto text-center">
+            <p class="text-gray-400">© 2025 Gaming Hub. All rights reserved.</p>
+            <div class="mt-4">
+                <a href="/privacy-policy" class="text-indigo-400 hover:text-indigo-600 mx-2">Privacy Policy</a>
+                <a href="/terms-of-service" class="text-indigo-400 hover:text-indigo-600 mx-2">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Animation for game cards and chess container
+        const elements = document.querySelectorAll('.game-card, .chess-container');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        });
+        elements.forEach(element => observer.observe(element));
+
+        // Chess game logic
+        const boardConfig = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd
+        };
+        const board = Chessboard('chessboard', boardConfig);
+        const game = new Chess();
+        let botLevel = 'easy';
+
+        document.getElementById('bot-level').addEventListener('change', function() {
+            botLevel = this.value;
+        });
+
+        document.getElementById('start-game').addEventListener('click', function() {
+            game.reset();
+            board.position('start');
+            updateStatus();
+            if (botLevel && game.turn() === 'b') {
+                makeBotMove();
+            }
+        });
+
+        document.getElementById('reset-game').addEventListener('click', function() {
+            game.reset();
+            board.position('start');
+            updateStatus();
+        });
+
+        function onDragStart(source, piece, position, orientation) {
+            if (game.game_over() || piece.search(/^b/) !== -1) {
+                return false;
+            }
+        }
+
+        function onDrop(source, target) {
+            const move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q'
+            });
+
+            if (move === null) return 'snapback';
+
+            updateStatus();
+            if (!game.game_over()) {
+                setTimeout(makeBotMove, 250);
+            }
+        }
+
+        function onSnapEnd() {
+            board.position(game.fen());
+        }
+
+        function updateStatus() {
+            let status = '';
+            if (game.in_checkmate()) {
+                status = 'Game over, ' + (game.turn() === 'b' ? 'White' : 'Black') + ' wins by checkmate!';
+            } else if (game.in_draw()) {
+                status = 'Game over, draw!';
+            } else {
+                status = game.turn() === 'w' ? 'White to move' : 'Black to move';
+                if (game.in_check()) {
+                    status += ', ' + (game.turn() === 'w' ? 'White' : 'Black') + ' is in check';
+                }
+            }
+            document.getElementById('game-status').innerText = status;
+        }
+
+        function makeBotMove() {
+            if (game.game_over()) return;
+
+            let move;
+            if (botLevel === 'easy') {
+                move = getRandomMove();
+            } else if (botLevel === 'medium') {
+                move = getMediumMove();
+            } else {
+                move = getHardMove();
+            }
+
+            game.move(move);
+            board.move(move.from + '-' + move.to);
+            updateStatus();
+        }
+
+        function getRandomMove() {
+            const moves = game.moves({ verbose: true });
+            return moves[Math.floor(Math.random() * moves.length)];
+        }
+
+        function getMediumMove() {
+            const moves = game.moves({ verbose: true });
+            let bestMove = null;
+            let bestValue = -9999;
+
+            moves.forEach(move => {
+                game.move(move);
+                const value = evaluateBoard();
+                game.undo();
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestMove = move;
+                }
+            });
+
+            return bestMove || getRandomMove();
+        }
+
+        function getHardMove() {
+            function minimax(depth, game, isMaximizing) {
+                if (depth === 0 || game.game_over()) {
+                    return evaluateBoard();
+                }
+
+                const moves = game.moves({ verbose: true });
+                if (isMaximizing) {
+                    let bestValue = -9999;
+                    moves.forEach(move => {
+                        game.move(move);
+                        const value = minimax(depth - 1, game, false);
+                        game.undo();
+                        bestValue = Math.max(bestValue, value);
+                    });
+                    return bestValue;
+                } else {
+                    let bestValue = 9999;
+                    moves.forEach(move => {
+                        game.move(move);
+                        const value = minimax(depth - 1, game, true);
+                        game.undo();
+                        bestValue = Math.min(bestValue, value);
+                    });
+                    return bestValue;
+                }
+            }
+
+            const moves = game.moves({ verbose: true });
+            let bestMove = null;
+            let bestValue = -9999;
+
+            moves.forEach(move => {
+                game.move(move);
+                const value = minimax(2, game, false);
+                game.undo();
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestMove = move;
+                }
+            });
+
+            return bestMove || getRandomMove();
+        }
+
+        function evaluateBoard() {
+            const pieceValues = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+            let totalValue = 0;
+
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const square = String.fromCharCode(97 + j) + (8 - i);
+                    const piece = game.get(square);
+                    if (piece) {
+                        const value = pieceValues[piece.type] * (piece.color === 'w' ? 1 : -1);
+                        totalValue += value;
+                    }
+                }
+            }
+
+            return totalValue;
+        }
+    </script>
+</body>
+</html>
